@@ -10,13 +10,16 @@ SEED_TERMS = ["ring", "necklace", "earrings", "diamond", "gold"]
 def get_search_surges():
     surges = []
     for term in SEED_TERMS:
-        pytrends.build_payload([term], timeframe='now 1-d')
-        result = pytrends.related_queries()
-        if term in result and result[term].get('rising') is not None:
-            data = result[term]['rising']
-            top = data.head(1)
-            for _, row in top.iterrows():
-                surges.append({"term": row['query'], "increase": row['value']})
+        try:
+            pytrends.build_payload([term], timeframe='now 1-d')
+            result = pytrends.related_queries()
+            if term in result and result[term].get('rising') is not None:
+                data = result[term]['rising']
+                top = data.head(1)
+                for _, row in top.iterrows():
+                    surges.append({"term": row['query'], "increase": row['value']})
+        except Exception as e:
+            print(f"Error processing {term}: {e}")
     surges.sort(key=lambda x: x['increase'], reverse=True)
     with open("data/search_surges.json", "w") as f:
         json.dump(surges[:5], f)
@@ -38,12 +41,15 @@ def get_trend_battle():
 def get_breakout():
     styles = []
     for term in SEED_TERMS:
-        pytrends.build_payload([term], timeframe='now 1-d')
-        result = pytrends.related_queries()
-        if term in result and result[term].get('rising') is not None:
-            for _, row in result[term]['rising'].iterrows():
-                if row['value'] == 'Breakout':
-                    styles.append(row['query'])
+        try:
+            pytrends.build_payload([term], timeframe='now 1-d')
+            result = pytrends.related_queries()
+            if term in result and result[term].get('rising') is not None:
+                for _, row in result[term]['rising'].iterrows():
+                    if row['value'] == 'Breakout':
+                        styles.append(row['query'])
+        except Exception as e:
+            print(f"Error getting breakout for {term}: {e}")
     style = styles[0] if styles else "No breakout found"
     with open("data/breakout_style.json", "w") as f:
         json.dump({"style": style}, f)
