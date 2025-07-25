@@ -1,0 +1,31 @@
+# -------------------------
+# .github/workflows/daily_update.yml
+name: Daily Data Update
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+jobs:
+  run-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip install pytrends selenium webdriver-manager pandas streamlit
+      - name: Run scripts
+        run: |
+          python data_collection/google_trends.py
+          python data_collection/material_heat_index.py
+          python data_collection/pinterest_trends.py
+      - name: Commit and push
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add data/*.json
+          git commit -m "Daily data update"
+          git push
