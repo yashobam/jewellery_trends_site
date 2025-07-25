@@ -27,6 +27,18 @@ pytrends = TrendReq()
 
 SEED_TERMS = ["ring", "necklace", "earrings", "diamond", "gold"]
 
+# Helper: Check if related_queries result is valid
+
+def is_valid_related_query(result, term):
+    return (
+        isinstance(result, dict)
+        and term in result
+        and isinstance(result[term], dict)
+        and 'rising' in result[term]
+        and isinstance(result[term]['rising'], pd.DataFrame)
+        and not result[term]['rising'].empty
+    )
+
 # Top 5 Search Surges
 def get_search_surges():
     surges = []
@@ -34,10 +46,8 @@ def get_search_surges():
         try:
             pytrends.build_payload([term], timeframe='now 1-d')
             result = pytrends.related_queries()
-            if (term in result and result[term]
-                    and 'rising' in result[term]
-                    and isinstance(result[term]['rising'], pd.DataFrame)
-                    and not result[term]['rising'].empty):
+            print("RESULT IS", result)
+            if is_valid_related_query(result, term):
                 data = result[term]['rising']
                 top = data.head(1)
                 for _, row in top.iterrows():
@@ -68,10 +78,7 @@ def get_breakout():
         try:
             pytrends.build_payload([term], timeframe='now 1-d')
             result = pytrends.related_queries()
-            if (term in result and result[term]
-                    and 'rising' in result[term]
-                    and isinstance(result[term]['rising'], pd.DataFrame)
-                    and not result[term]['rising'].empty):
+            if is_valid_related_query(result, term):
                 for _, row in result[term]['rising'].iterrows():
                     if row['value'] == 'Breakout':
                         styles.append(row['query'])
