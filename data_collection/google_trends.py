@@ -34,7 +34,10 @@ def get_search_surges():
         try:
             pytrends.build_payload([term], timeframe='now 1-d')
             result = pytrends.related_queries()
-            if term in result and 'rising' in result[term] and isinstance(result[term]['rising'], pd.DataFrame):
+            if (term in result and result[term]
+                    and 'rising' in result[term]
+                    and isinstance(result[term]['rising'], pd.DataFrame)
+                    and not result[term]['rising'].empty):
                 data = result[term]['rising']
                 top = data.head(1)
                 for _, row in top.iterrows():
@@ -65,7 +68,10 @@ def get_breakout():
         try:
             pytrends.build_payload([term], timeframe='now 1-d')
             result = pytrends.related_queries()
-            if term in result and 'rising' in result[term] and isinstance(result[term]['rising'], pd.DataFrame):
+            if (term in result and result[term]
+                    and 'rising' in result[term]
+                    and isinstance(result[term]['rising'], pd.DataFrame)
+                    and not result[term]['rising'].empty):
                 for _, row in result[term]['rising'].iterrows():
                     if row['value'] == 'Breakout':
                         styles.append(row['query'])
