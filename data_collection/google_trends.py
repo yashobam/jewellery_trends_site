@@ -1,3 +1,24 @@
+# jewellery_trends_site/
+
+# Project Structure:
+# - data_collection/
+#     - google_trends.py
+#     - pinterest_trends.py
+#     - material_heat_index.py
+# - dashboard/
+#     - app.py
+# - data/
+#     - search_surges.json
+#     - breakout_style.json
+#     - heatmap_data.json
+#     - trend_battle.json
+#     - moodboard.json
+#     - materials.json
+# - .github/workflows/
+#     - daily_update.yml
+
+# -------------------------
+# data_collection/google_trends.py
 import json
 from pytrends.request import TrendReq
 import pandas as pd
@@ -13,7 +34,7 @@ def get_search_surges():
         try:
             pytrends.build_payload([term], timeframe='now 1-d')
             result = pytrends.related_queries()
-            if term in result and result[term].get('rising') is not None:
+            if term in result and 'rising' in result[term] and isinstance(result[term]['rising'], pd.DataFrame):
                 data = result[term]['rising']
                 top = data.head(1)
                 for _, row in top.iterrows():
@@ -44,7 +65,7 @@ def get_breakout():
         try:
             pytrends.build_payload([term], timeframe='now 1-d')
             result = pytrends.related_queries()
-            if term in result and result[term].get('rising') is not None:
+            if term in result and 'rising' in result[term] and isinstance(result[term]['rising'], pd.DataFrame):
                 for _, row in result[term]['rising'].iterrows():
                     if row['value'] == 'Breakout':
                         styles.append(row['query'])
