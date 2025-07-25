@@ -44,7 +44,9 @@ def get_search_surges():
     surges = []
     for term in SEED_TERMS:
         try:
+            print("Nothing built yet")
             pytrends.build_payload([term], timeframe='now 1-d')
+            print("PAYLOAD BUILT")
             result = pytrends.related_queries()
             print("RESULT IS", result)
             if is_valid_related_query(result, term):
