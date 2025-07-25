@@ -22,13 +22,13 @@
 import json
 from pytrends.request import TrendReq
 import pandas as pd
+import time
 
 pytrends = TrendReq()
 
 SEED_TERMS = ["ring", "necklace", "earrings", "diamond", "gold"]
 
 # Helper: Check if related_queries result is valid
-
 def is_valid_related_query(result, term):
     return (
         isinstance(result, dict)
@@ -39,17 +39,26 @@ def is_valid_related_query(result, term):
         and not result[term]['rising'].empty
     )
 
+# Resilient wrapper for pytrends.related_queries()
+def safe_related_queries(term, retries=3, delay=2):
+    for attempt in range(retries):
+        try:
+            result = pytrends.related_queries()
+            if is_valid_related_query(result, term):
+                return result
+        except Exception as e:
+            print(f"Attempt {attempt+1} failed for {term}: {e}")
+        time.sleep(delay)
+    return None
+
 # Top 5 Search Surges
 def get_search_surges():
     surges = []
     for term in SEED_TERMS:
         try:
-            print("Nothing built yet")
             pytrends.build_payload([term], timeframe='now 1-d')
-            print("PAYLOAD BUILT")
-            result = pytrends.related_queries()
-            print("RESULT IS", result)
-            if is_valid_related_query(result, term):
+            result = safe_related_queries(term)
+            if result:
                 data = result[term]['rising']
                 top = data.head(1)
                 for _, row in top.iterrows():
@@ -79,8 +88,8 @@ def get_breakout():
     for term in SEED_TERMS:
         try:
             pytrends.build_payload([term], timeframe='now 1-d')
-            result = pytrends.related_queries()
-            if is_valid_related_query(result, term):
+            result = safe_related_queries(term)
+            if result:
                 for _, row in result[term]['rising'].iterrows():
                     if row['value'] == 'Breakout':
                         styles.append(row['query'])
