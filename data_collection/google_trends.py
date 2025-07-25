@@ -11,8 +11,9 @@ def get_search_surges():
     surges = []
     for term in SEED_TERMS:
         pytrends.build_payload([term], timeframe='now 1-d')
-        data = pytrends.related_queries()[term]['rising']
-        if data is not None:
+        result = pytrends.related_queries()
+        if term in result and result[term].get('rising') is not None:
+            data = result[term]['rising']
             top = data.head(1)
             for _, row in top.iterrows():
                 surges.append({"term": row['query'], "increase": row['value']})
@@ -38,9 +39,9 @@ def get_breakout():
     styles = []
     for term in SEED_TERMS:
         pytrends.build_payload([term], timeframe='now 1-d')
-        data = pytrends.related_queries()[term]['rising']
-        if data is not None:
-            for _, row in data.iterrows():
+        result = pytrends.related_queries()
+        if term in result and result[term].get('rising') is not None:
+            for _, row in result[term]['rising'].iterrows():
                 if row['value'] == 'Breakout':
                     styles.append(row['query'])
     style = styles[0] if styles else "No breakout found"
